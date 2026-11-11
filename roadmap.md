@@ -1,0 +1,20 @@
+# BoostyBun changes
+- [x] Compact circular player avatars row with active-player glow.
+- [x] Floating chat bubbles and rising emoji reactions (replace popup).
+- [x] Chat panel: reactions, quick messages, 50-char custom text, per-round history; spectators no custom text (UI + server).
+- [x] Global disconnect countdown for everyone, synced to server time.
+- [x] Host End Game in lobby, joint-winner celebration (confetti, sound, reactions, 10s), Play New Game / Leave Room.
+- [x] Rule tests and two-player verification for these changes.
+- [x] Migrated into this Lovable project (rooms table, live sync, two-player verified).
+- [x] 60-second reconnect countdown and safe expiry.
+- [x] Live spectator count.
+- [x] Server-confirmed Wild Swap defence and replay protection.
+- [x] Live emoji reactions and predefined quick chat.
+- [x] End Round returns to the lobby and waits for the host to start again.
+- [x] Manual confirmed passing and local drag-to-swap arrangement.
+- [x] Separate received card and simplify active play / leaderboard.
+- [x] Live front camera capture, confirm, retake, and denial handling.
+- [x] Server-random Wild Swap and manual power claims with progress.
+- [x] Round reward animation followed by updated scores.
+- [x] Rule tests and desktop/mobile multiplayer verification.
+- [x] Premium midnight-navy visual redesign across all screens (manual gameplay test pending by user).

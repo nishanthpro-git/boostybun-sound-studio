@@ -1,0 +1,9 @@
+[
+ {"capability":"code","source":"archive","outcome":"migrate","status":"verified","next_action":null},
+ {"capability":"schema (rooms)","source":"drizzle migration","outcome":"migrate","status":"verified","next_action":null},
+ {"capability":"records","source":"rooms table","outcome":"skip","status":"accepted","next_action":"Rooms are short-lived game sessions; no export needed"},
+ {"capability":"auth identities","source":"none (anonymous per-room tokens)","outcome":"n/a","status":"verified","next_action":null},
+ {"capability":"realtime updates","source":"rooms publication","outcome":"migrate","status":"verified","next_action":null},
+ {"capability":"image assets","source":"original project CDN","outcome":"re-hosted","status":"verified","next_action":null},
+ {"capability":"secrets/external providers","source":"none","outcome":"n/a","status":"verified","next_action":null}
+]
