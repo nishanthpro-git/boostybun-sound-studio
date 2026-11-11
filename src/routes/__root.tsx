@@ -10,6 +10,9 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
+import { SoundToggle } from "@/components/SoundToggle";
+import { installGlobalSfx, sfx } from "@/lib/sfx";
+import { toast } from "sonner";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
@@ -121,11 +124,23 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  useEffect(() => {
+    installGlobalSfx();
+    // Every error/warning toast in the app gets a matching sound.
+    const t = toast as unknown as Record<string, (...a: unknown[]) => unknown> & { __sfx?: boolean };
+    if (t.__sfx) return;
+    t.__sfx = true;
+    for (const [k, s] of [["error", "error"], ["warning", "alert"], ["success", "success"]] as const) {
+      const orig = t[k];
+      t[k] = (...a: unknown[]) => { sfx(s); return orig(...a); };
+    }
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <SoundToggle />
       <Toaster position="top-center" theme="dark" />
     </QueryClientProvider>
   );

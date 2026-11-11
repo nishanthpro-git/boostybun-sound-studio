@@ -29,7 +29,7 @@ export function BoostStage({ canBoost, disabled, onBoost, waiting }: { canBoost:
           <span aria-hidden className="boost-halo pointer-events-none absolute -inset-16 rounded-full" />
           <span aria-hidden className="boost-ring pointer-events-none absolute inset-0 rounded-full" />
           <span aria-hidden className="boost-ring pointer-events-none absolute inset-0 rounded-full [animation-delay:0.9s]" />
-          <Button variant="boost" size="huge" disabled={disabled} onClick={() => { burst(); onBoost(); }}>BOOST!</Button>
+          <Button data-sfx="boost" variant="boost" size="huge" disabled={disabled} onClick={() => { burst(); onBoost(); }}>BOOST!</Button>
         </div>
       ) : (
         <div className="screen-in">{waiting}</div>

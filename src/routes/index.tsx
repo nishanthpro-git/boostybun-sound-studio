@@ -13,6 +13,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { SelfieCamera } from "@/components/SelfieCamera";
 import { createRoom, joinRoom } from "@/lib/room.functions";
 import { cn } from "@/lib/utils";
+import { sfx } from "@/lib/sfx";
 
 export const Route = createFileRoute("/")({
   validateSearch: z.object({ join: z.string().optional() }),
@@ -45,7 +46,7 @@ function Home() {
     setAvatar(choices[(i + d + choices.length) % choices.length]);
   };
   const stepBg = (d: number) => setBg((b) => (b + d + CARD_BACKS.length) % CARD_BACKS.length);
-  const takeSelfie = (photo: string) => { setSelfie(photo); setAvatar(photo); };
+  const takeSelfie = (photo: string) => { sfx("avatar"); setSelfie(photo); setAvatar(photo); };
 
   useEffect(() => {
     const p = loadProfile();
@@ -71,6 +72,7 @@ function Home() {
       if ("error" in res && res.error) throw new Error(res.error);
       const r = res as { code: string; playerId: string; token: string };
       saveSession(r);
+      sfx(mode === "create" ? "create" : "join");
       navigate({ to: "/room/$code", params: { code: r.code } });
     } catch (e) {
       toast.error((e as Error).message);
@@ -111,17 +113,17 @@ function Home() {
             <Input id="display-name" value={name} maxLength={20} onChange={(e) => setName(e.target.value)} placeholder="Bunny" />
           </div>
           <div key={bg} style={cardBg(CARD_BACKS[bg])} className="preview-swap game-card mx-auto flex aspect-[5/7] w-56 flex-col bg-surface sm:w-64">
-            <CardFace avatar={avatar} mask={mask} name={name.trim() || "You"} animate onAvatarClick={() => setMask((m) => (m + 1) % MASKS.length)} avatarLabel={`Change shape (now ${MASKS[mask]})`} />
+            <CardFace avatar={avatar} mask={mask} name={name.trim() || "You"} animate onAvatarClick={() => { sfx("mask"); setMask((m) => (m + 1) % MASKS.length); }} avatarLabel={`Change shape (now ${MASKS[mask]})`} />
           </div>
           <p className="text-center text-xs font-bold text-muted-foreground">Tap your bunny to change shape · {MASKS[mask]}</p>
-          <Stepper label="Avatar" value={selfie && avatar === selfie ? "Your selfie" : BUNNY_AVATARS[avatar]?.label ?? "Bunny"} onPrev={() => stepAvatar(-1)} onNext={() => stepAvatar(1)} />
-          <Stepper label="Background" value={`${bg + 1} / ${CARD_BACKS.length}`} onPrev={() => stepBg(-1)} onNext={() => stepBg(1)} />
+          <Stepper sound="avatar" label="Avatar" value={selfie && avatar === selfie ? "Your selfie" : BUNNY_AVATARS[avatar]?.label ?? "Bunny"} onPrev={() => stepAvatar(-1)} onNext={() => stepAvatar(1)} />
+          <Stepper sound="background" label="Background" value={`${bg + 1} / ${CARD_BACKS.length}`} onPrev={() => stepBg(-1)} onNext={() => stepBg(1)} />
           <div className="flex justify-center"><SelfieCamera onCapture={takeSelfie} /></div>
         </section>
 
         {/* Play */}
         <section className="panel space-y-4 p-5">
-          <Button variant="game" size="xl" className="w-full text-xl" disabled={busy} onClick={() => go("create")}>
+          <Button variant="game" size="xl" className="w-full text-xl" data-sfx="pop" disabled={busy} onClick={() => go("create")}>
             Create room
           </Button>
           <div className="flex items-center gap-3 text-xs font-extrabold tracking-widest text-muted-foreground uppercase">
@@ -145,15 +147,15 @@ function Home() {
   );
 }
 
-function Stepper({ label, value, onPrev, onNext }: { label: string; value: string; onPrev: () => void; onNext: () => void }) {
+function Stepper({ label, value, onPrev, onNext, sound }: { sound: string; label: string; value: string; onPrev: () => void; onNext: () => void }) {
   return (
     <div className="panel-inset flex items-center gap-2 p-1.5">
-      <Button variant="secondary" size="icon" className="rounded-full" aria-label={`Previous ${label.toLowerCase()}`} onClick={onPrev}><ChevronLeft /></Button>
+      <Button variant="secondary" size="icon" className="rounded-full" data-sfx={sound} aria-label={`Previous ${label.toLowerCase()}`} onClick={onPrev}><ChevronLeft /></Button>
       <div className="min-w-0 flex-1 text-center">
         <div className="text-[10px] font-extrabold tracking-widest text-muted-foreground uppercase">{label}</div>
         <div className="truncate font-display text-base font-bold">{value}</div>
       </div>
-      <Button variant="secondary" size="icon" className="rounded-full" aria-label={`Next ${label.toLowerCase()}`} onClick={onNext}><ChevronRight /></Button>
+      <Button variant="secondary" size="icon" className="rounded-full" data-sfx={sound} aria-label={`Next ${label.toLowerCase()}`} onClick={onNext}><ChevronRight /></Button>
     </div>
   );
 }

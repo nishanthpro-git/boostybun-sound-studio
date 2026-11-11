@@ -17,6 +17,8 @@ import {
   type RoomState,
 } from "@/lib/game";
 import { cn } from "@/lib/utils";
+import { useGameSounds } from "@/hooks/use-game-sounds";
+import { sfx } from "@/lib/sfx";
 import { PlayerHand } from "@/components/PlayerHand";
 import { RoundReward } from "@/components/RoundReward";
 import { SwapCelebration } from "@/components/SwapCelebration";
@@ -189,6 +191,7 @@ function Game({ state, meId, act, onLeave, serverOffset, offline }: {
   offline: boolean;
 }) {
   const serverNow = useServerNow(serverOffset, 1000);
+  useGameSounds(state, meId);
   const disconnected = useDisconnected(state, meId, serverNow, offline);
   const offlineIds = new Set(disconnected.map((d) => d.player.id));
   const [chatOpen, setChatOpen] = useState(false);
@@ -211,7 +214,7 @@ function Game({ state, meId, act, onLeave, serverOffset, offline }: {
     if (pending.current) return;
     pending.current = true;
     setBusy(true);
-    try { const ok = await act(action); if (ok && action.type === "pass") setSelectedId(null); if (ok && action.type === "claimSwap") setCelebrate(true); }
+    try { const ok = await act(action); if (ok && action.type === "pass") setSelectedId(null); if (ok && action.type === "claimSwap") { sfx("claim"); setCelebrate(true); } if (ok && action.type === "ready") sfx("ready"); }
     finally { pending.current = false; setBusy(false); }
   };
   if (!me) return null;
@@ -230,7 +233,7 @@ function Game({ state, meId, act, onLeave, serverOffset, offline }: {
   const claimable = swapsClaimable(me);
   const { have, need } = swapProgress(me);
   const progress = claimable > 0 ? need : have;
-  const claimButton = claimable > 0 && <Button variant="game" size="xl" className="w-full" disabled={busy} onClick={() => run({ type: "claimSwap", claimNumber: (me.swapsClaimed ?? me.swapsUsed) + 1 })}><WildSwapCard className="w-6" />Claim Wild Swap</Button>;
+  const claimButton = claimable > 0 && <Button variant="game" size="xl" className="w-full" data-sfx="none" disabled={busy} onClick={() => run({ type: "claimSwap", claimNumber: (me.swapsClaimed ?? me.swapsUsed) + 1 })}><WildSwapCard className="w-6" />Claim Wild Swap</Button>;
   const powerPanel = !isSpectator && <section className="panel space-y-3 p-4 sm:p-5">
     <div className="flex flex-wrap items-center justify-between gap-2">
       <h3 className="text-lg font-bold">Your Wild Swaps</h3>

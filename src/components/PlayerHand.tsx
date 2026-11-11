@@ -26,7 +26,7 @@ function Tile({ card, state, selected, onSelect, draggable }: { card: Card; stat
   const drop = useDroppable({ id: card.id, disabled: !draggable });
   return <div ref={drop.setNodeRef} className={cn("relative min-w-0 rounded-[1.2rem]", drop.isOver && "ring-2 ring-electric ring-offset-2 ring-offset-background")}>
     <div ref={drag.setNodeRef} className={cn("relative", drag.isDragging && "opacity-30")}>
-      <button type="button" aria-label={`Select card ${card.id}`} aria-pressed={selected} disabled={!onSelect} onClick={onSelect}
+      <button type="button" data-sfx="tap" aria-label={`Select card ${card.id}`} aria-pressed={selected} disabled={!onSelect} onClick={onSelect}
         {...(draggable ? drag.listeners : {})} title={draggable ? "Tap to select, long-press to move" : undefined}
         style={cardStyle(card, state)}
         className={cn("game-card flex aspect-[5/7] w-full min-w-0 cursor-pointer select-none flex-col bg-surface p-0 disabled:cursor-default [-webkit-touch-callout:none] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric", draggable && "touch-manipulation")}>
