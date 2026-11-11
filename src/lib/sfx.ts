@@ -144,7 +144,7 @@ export function installGlobalSfx() {
   document.addEventListener("click", (e) => {
     const el = (e.target as HTMLElement | null)?.closest<HTMLElement>("[data-sfx], button, a, [role=button]");
     if (!el || (el as HTMLButtonElement).disabled || el.getAttribute("aria-disabled") === "true") return;
-    const name = el.dataset.sfx;
+    const name = el.dataset["sfx"];
     if (name === "none") return;
     sfx((name as Sfx) || (el.tagName === "A" ? "nav" : "click"));
   }, { capture: true });
