@@ -404,16 +404,19 @@ progress::-moz-progress-bar { background: linear-gradient(90deg, var(--electric)
 .wild-card-btn:active:not(:disabled) { transform: translateY(1px) scale(0.95); }
 .wild-card-btn:disabled { opacity: 0.5; filter: saturate(0.5); cursor: not-allowed; }
 
-/* Victory: primary violet action */
+/* Victory: vibrant electric-blue action with a matching blue glow */
 @utility btn-victory {
-  background-image: linear-gradient(180deg, var(--violet-glow) 0%, var(--violet) 55%, var(--violet-deep) 100%);
-  color: var(--accent-foreground);
-  box-shadow: 0 1px 0 0 oklch(1 0 0 / 0.35) inset, 0 4px 0 0 var(--violet-deep), 0 0 26px -4px color-mix(in oklch, var(--violet) 75%, transparent);
-  text-shadow: 0 1px 0 oklch(0.3 0.15 290 / 0.6);
+  background-image: linear-gradient(180deg, oklch(0.8 0.15 240) 0%, oklch(0.64 0.24 258) 50%, oklch(0.48 0.24 264) 100%);
+  color: oklch(0.99 0 0);
+  box-shadow: 0 1px 0 0 oklch(1 0 0 / 0.45) inset, 0 4px 0 0 oklch(0.4 0.2 265), 0 0 28px -2px oklch(0.66 0.23 255 / 0.8);
+  text-shadow: 0 1px 0 oklch(0.3 0.18 265 / 0.7);
   transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.15s ease;
-  &:hover { filter: brightness(1.1); }
-  &:active { transform: translateY(3px); box-shadow: 0 1px 0 0 oklch(1 0 0 / 0.3) inset, 0 1px 0 0 var(--violet-deep), 0 0 16px -4px var(--violet); }
+  &:hover { filter: brightness(1.12) saturate(1.1); }
+  &:active { transform: translateY(3px); box-shadow: 0 1px 0 0 oklch(1 0 0 / 0.3) inset, 0 1px 0 0 oklch(0.4 0.2 265), 0 0 18px -2px oklch(0.66 0.23 255 / 0.8); }
 }
+@keyframes victory-glow { 0%,100% { box-shadow: 0 0 0 3px oklch(0.7 0.2 250), 0 4px 0 0 oklch(0.4 0.2 265), 0 0 14px 2px oklch(0.66 0.23 255 / 0.6); } 50% { box-shadow: 0 0 0 3px oklch(0.85 0.13 235), 0 4px 0 0 oklch(0.4 0.2 265), 0 0 34px 8px oklch(0.7 0.22 250 / 0.85); } }
+.victory-glow { animation: victory-glow 1.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .victory-glow { animation: none; } }
 
 /* Wild Swap unlocked celebration */
 @keyframes wild-enter { 0% { transform: translateY(40vh) rotate(-25deg) scale(0.4); opacity: 0; } 60% { transform: translateY(-12px) rotate(6deg) scale(1.06); opacity: 1; } 80% { transform: rotate(-2deg); } 100% { transform: none; } }
