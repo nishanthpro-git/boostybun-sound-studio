@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/__l5e/:path*",
+      "destination": "https://boostybun-new.lovable.app/__l5e/:path*"
+    }
+  ]
+}
