@@ -423,3 +423,6 @@ progress::-moz-progress-bar { background: linear-gradient(90deg, var(--electric)
 @keyframes wild-out { to { opacity: 0; transform: scale(0.96); } }
 .wild-out { animation: wild-out 0.35s ease-in forwards; }
 @media (prefers-reduced-motion: reduce) { .mask-pop, .preview-swap, .wild-enter, .wild-glow { animation: none; } }
+
+/* Reserve a strip at the top for the always-visible sound toggle so it never covers content. */
+body { padding-top: 2.75rem; }
