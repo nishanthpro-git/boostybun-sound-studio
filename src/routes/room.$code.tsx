@@ -343,7 +343,7 @@ function Game({ state, meId, act, onLeave, serverOffset, offline }: {
         </div>}
         {!isSpectator && <div className="flex flex-col items-center gap-3">
           {myTurn && selectedId && viewHand.some(c => c.id === selectedId) && <Button variant="game" size="xl" className="screen-in w-full max-w-md whitespace-normal" disabled={busy || !!state.pendingSwap} onClick={() => run({ type: "pass", cardId: selectedId, round: state.round, passes: state.passes })}>Pass to {nextName} →</Button>}
-          {state.round1Done && <Button variant="victory" size="xl" className={cn("mx-auto h-16 w-full max-w-md text-2xl sm:h-20 sm:text-3xl", canVictory ? "glow-pulse" : "opacity-60")} disabled={busy || !canVictory} onClick={() => run({ type: "victory" })}>🏆 VICTORY</Button>}
+          {state.round1Done && <Button variant="victory" size="xl" className={cn("mx-auto h-16 w-full max-w-md text-2xl sm:h-20 sm:text-3xl", canVictory ? "victory-glow" : "opacity-60")} disabled={busy || !canVictory} onClick={() => run({ type: "victory" })}>🏆 VICTORY</Button>}
         </div>}
       </section>}
       {powerPanel}
