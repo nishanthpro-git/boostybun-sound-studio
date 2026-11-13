@@ -1,11 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/Avatar";
 import { loadSession, saveSession, type Session } from "@/lib/session";
-import { roomAction } from "@/lib/room.functions";
+import { getRoom, roomAction } from "@/lib/room.functions";
 import {
   activePlayers,
   isWinningHand,
@@ -87,25 +86,20 @@ function RoomPage() {
   useEffect(() => {
     if (!session) return;
     let alive = true;
-    const fetchRow = () =>
-      supabase
-        .from("rooms")
-        .select("state, version, updated_at")
-        .eq("code", code)
-        .maybeSingle()
-        .then(({ data, error }) => { if (alive && !error) applyRow(data); });
+    let inFlight = false;
+    const fetchRow = () => {
+      if (inFlight) return;
+      inFlight = true;
+      getRoom({ data: { code, playerId: session.playerId, token: session.token } })
+        .then((res) => { if (alive && !("error" in res)) applyRow(res.row); })
+        .catch(() => {})
+        .finally(() => { inFlight = false; });
+    };
     fetchRow();
-    const ch = supabase
-      .channel(`room-${code}-${Math.random().toString(36).slice(2)}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "rooms", filter: `code=eq.${code}` }, (p) =>
-        applyRow(p.new as { state: unknown; version: number; updated_at?: string }),
-      )
-      .subscribe((status) => status === "SUBSCRIBED" && fetchRow());
-    const poll = setInterval(fetchRow, 2000);
+    const poll = setInterval(fetchRow, 1000);
     return () => {
       alive = false;
       clearInterval(poll);
-      supabase.removeChannel(ch);
     };
   }, [session, code, applyRow]);
 
