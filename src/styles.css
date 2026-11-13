@@ -328,6 +328,12 @@ progress::-moz-progress-bar { background: linear-gradient(90deg, var(--electric)
 .swap-fade { animation: swap-fade 0.25s ease-out; }
 
 /* Compact player strip: active player glows orange */
+@utility glow-blue {
+  box-shadow: 0 0 0 3px var(--electric), 0 0 26px 6px color-mix(in oklch, var(--electric) 70%, transparent);
+}
+@keyframes tap-hint { 0%,100% { transform: translate(0,0) scale(1); } 40% { transform: translate(-4px,-6px) scale(1.08); } 55% { transform: translate(0,0) scale(0.92); } }
+.tap-hint { animation: tap-hint 1.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .tap-hint { animation: none; } }
 @utility glow-active {
   box-shadow: 0 0 0 3px var(--primary), 0 0 18px 3px color-mix(in oklch, var(--primary) 60%, transparent);
 }

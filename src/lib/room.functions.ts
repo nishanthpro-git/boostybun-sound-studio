@@ -114,7 +114,8 @@ export const roomAction = createServerFn({ method: "POST" })
           z.object({ type: z.literal("respondSwap"), swapId: z.number().int().positive(), defend: z.boolean() }).strict(),
           z.object({ type: z.literal("signal"), text: z.string().max(80) }).strict(),
           z.object({ type: z.literal("chat"), text: z.string().max(200) }).strict(),
-          ...["start", "victory", "boost", "swap", "endRound", "endGame", "newGame", "leave", "heartbeat"].map(type => z.object({ type: z.literal(type) }).strict()),
+          z.object({ type: z.literal("kick"), targetId: z.string().uuid() }).strict(),
+          ...["start", "victory", "boost", "swap", "endRound", "endGame", "newGame", "leave", "heartbeat", "ring", "nudge"].map(type => z.object({ type: z.literal(type) }).strict()),
         ]),
       })
       .parse(d),
@@ -156,7 +157,7 @@ export const getRoom = createServerFn({ method: "POST" })
     const s = row.state as unknown as RoomState;
     const hash = await sha(data.token);
     const me = s.players.find((x) => x.id === data.playerId);
-    if (!me || me.tokenHash !== hash) return { row: null };
+    if (!me || me.tokenHash !== hash) return { row: null, removed: true };
     const safe = { ...s, players: s.players.map(({ tokenHash: _t, ...rest }) => ({ ...rest, tokenHash: "" })) };
     return { row: { state: safe as never, version: row.version, updated_at: row.updated_at } };
   });

@@ -18,6 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useGameSounds } from "@/hooks/use-game-sounds";
 import { sfx } from "@/lib/sfx";
+import { Bell, X } from "lucide-react";
 import { PlayerHand } from "@/components/PlayerHand";
 import { RoundReward } from "@/components/RoundReward";
 import { SwapCelebration } from "@/components/SwapCelebration";
@@ -63,6 +64,7 @@ function RoomPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [state, setState] = useState<RoomState | null>(null);
   const [missing, setMissing] = useState(false);
+  const [removed, setRemoved] = useState(false);
   const versionRef = useRef(-1);
   const seenEvent = useRef<number | null>(null);
   const connection = useRoomConnection(session);
@@ -91,7 +93,11 @@ function RoomPage() {
       if (inFlight) return;
       inFlight = true;
       getRoom({ data: { code, playerId: session.playerId, token: session.token } })
-        .then((res) => { if (alive && !("error" in res)) applyRow(res.row); })
+        .then((res) => {
+          if (!alive || "error" in res) return;
+          if ("removed" in res && res.removed) return setRemoved(true);
+          applyRow(res.row);
+        })
         .catch(() => {})
         .finally(() => { inFlight = false; });
     };
@@ -133,7 +139,29 @@ function RoomPage() {
     seenEvent.current = state.seq;
   }, [state, session]);
 
+  // Lobby bell / nudge notifications
+  const seenPing = useRef<number | null>(null);
+  useEffect(() => {
+    if (!state || !session) return;
+    const latest = state.pingSeq ?? 0;
+    if (seenPing.current === null) { seenPing.current = latest; return; }
+    const isHost = state.hostId === session.playerId;
+    for (const p of state.pings ?? []) {
+      if (p.id <= seenPing.current || p.from === session.playerId) continue;
+      const from = state.players.find((x) => x.id === p.from)?.name ?? "Someone";
+      if (p.kind === "bell" && !isHost) {
+        sfx("bell");
+        toast(`${from} rang the bell — tap “I'm ready”!`, { icon: <Bell className="size-5 text-gold" />, duration: 5000 });
+      } else if (p.kind === "nudge" && isHost) {
+        sfx("bell");
+        toast(`${from} is ready — start the game!`, { icon: <Bell className="size-5 text-gold" />, duration: 5000 });
+      }
+    }
+    seenPing.current = latest;
+  }, [state, session]);
+
   if (connection.expired) return <Gone text="Your reconnect time expired. You are no longer in this room." onHome={() => saveSession(null)} />;
+  if (removed) return <Gone text="You're no longer in this room." onHome={() => saveSession(null)} />;
   if (missing) return <Gone text="This room doesn't exist." />;
   if (!state || !session) return <LoadingRoom code={code} />;
   const me = state.players.find((p) => p.id === session.playerId);
@@ -282,10 +310,25 @@ function Game({ state, meId, act, onLeave, serverOffset, offline }: {
             <Avatar src={p.avatar} className={cn("size-11", p.status === "spectator" && "opacity-60 grayscale")} />
             <span className="min-w-0 flex-1 break-words font-bold">{p.name} {p.id === state.hostId && "👑"} {p.id === meId && <span className="text-electric-glow">(you)</span>}</span>
             <span className={cn("shrink-0 rounded-full px-2.5 py-1 text-xs font-extrabold", p.status === "spectator" ? "bg-muted text-muted-foreground" : p.id === state.hostId ? "bg-gold/15 text-gold" : ready ? "bg-success/15 text-success" : "bg-muted text-muted-foreground")}>{p.status === "spectator" ? "Spectator" : p.id === state.hostId ? "Host" : p.ready ? "Ready ✓" : "Not ready"}</span>
+            {isHost && p.id !== meId && <AlertDialog>
+              <AlertDialogTrigger asChild><button type="button" aria-label={`Remove ${p.name}`} title={`Remove ${p.name}`} className="grid size-7 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive"><X className="size-4" /></button></AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="font-display text-2xl">Remove {p.name}?</AlertDialogTitle>
+                  <AlertDialogDescription>They'll be taken out of this room. They can rejoin with the room code.</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+                  <AlertDialogAction className="rounded-xl font-display" onClick={() => run({ type: "kick", targetId: p.id })}>Remove</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>}
           </li>;
         })}</ul>
         {!isSpectator && !isHost && <Button variant={me.ready ? "secondary" : "game"} size="xl" className="w-full font-display" disabled={busy} onClick={() => run({ type: "ready", ready: !me.ready })}>{me.ready ? "Not ready" : "I'm ready"}</Button>}
-        {isHost && <Button variant="game" size="xl" className="w-full" disabled={busy || actives.length < 2 || actives.some(p => p.id !== meId && !p.ready)} onClick={() => run({ type: "start" })}>Start game</Button>}
+        {!isSpectator && !isHost && me.ready && <Button variant="outline" className="w-full" disabled={busy} onClick={async () => { if (await act({ type: "nudge" })) toast.success("Host notified!"); }}><Bell className="size-4" /> Tell the host to start</Button>}
+        {isHost && actives.some(p => p.id !== meId && !p.ready) && <Button variant="outline" className="w-full" disabled={busy} onClick={async () => { if (await act({ type: "ring" })) { sfx("bell"); toast.success("Bell rung — players notified!"); } }}><Bell className="size-4" /> Ring the bell to get everyone ready</Button>}
+        {isHost && <Button variant="game" size="xl" className="w-full" disabled={busy || actives.length < 2 || actives.some(p => p.id !== meId && !p.ready)} onClick={() => run({ type: "start" })}>{state.round === 0 ? "Start game" : "Next Round →"}</Button>}
         {isHost && <AlertDialog>
           <AlertDialogTrigger asChild><Button variant="finale" size="xl" className="w-full" disabled={busy || state.round === 0}>🏁 End Game</Button></AlertDialogTrigger>
           <AlertDialogContent>

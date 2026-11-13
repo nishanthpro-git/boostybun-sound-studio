@@ -400,3 +400,27 @@ describe("social rate limits", () => {
     expect(() => applyAction(s, "p1", { type: "signal", text: "😂" }, now + 500)).toThrow();
   });
 });
+
+describe("lobby host tools", () => {
+  it("only the host can remove a player, and only in the lobby", () => {
+    const s = room(3);
+    const host = s.hostId;
+    const other = s.players.find((p) => p.id !== host)!.id;
+    expect(() => applyAction(s, other, { type: "kick", targetId: host }, now)).toThrow();
+    const after = applyAction(s, host, { type: "kick", targetId: other }, now);
+    expect(after.players.some((p) => p.id === other)).toBe(false);
+  });
+  it("only the host can ring the bell", () => {
+    const s = room(2);
+    const other = s.players.find((p) => p.id !== s.hostId)!.id;
+    expect(() => applyAction(s, other, { type: "ring" }, now)).toThrow();
+    expect(applyAction(s, s.hostId, { type: "ring" }, now).pings?.[0]?.kind).toBe("bell");
+  });
+  it("only a ready non-host player can nudge the host", () => {
+    const s = room(2);
+    const other = s.players.find((p) => p.id !== s.hostId)!.id;
+    expect(() => applyAction(s, other, { type: "nudge" }, now)).toThrow();
+    const ready = applyAction(s, other, { type: "ready", ready: true }, now);
+    expect(applyAction(ready, other, { type: "nudge" }, now).pings?.at(-1)?.kind).toBe("nudge");
+  });
+});

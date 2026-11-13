@@ -10,6 +10,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
+import { HowToPlay } from "@/components/HowToPlay";
 import { SoundToggle } from "@/components/SoundToggle";
 import { installGlobalSfx, sfx } from "@/lib/sfx";
 import { toast } from "sonner";
@@ -141,6 +142,7 @@ function RootComponent() {
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
       <SoundToggle />
+      <HowToPlay />
       <Toaster position="top-center" theme="dark" />
     </QueryClientProvider>
   );

@@ -30,7 +30,7 @@ export function CardFace({ avatar, mask, name, onAvatarClick, avatarLabel, anima
     <span className="relative z-[2] flex flex-1 items-center justify-center pt-2">
       <span aria-hidden className="absolute size-[78%] rounded-full bg-[radial-gradient(circle,oklch(1_0_0/0.45)_0%,transparent_70%)]" />
       {onAvatarClick ? (
-        <button type="button" data-sfx="none" onClick={onAvatarClick} aria-label={avatarLabel} className="relative w-[72%] cursor-pointer rounded-full transition-transform hover:scale-[1.03] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric">{av}</button>
+        <button type="button" data-sfx="none" onClick={(e) => { e.stopPropagation(); onAvatarClick(); }} aria-label={avatarLabel} className="relative w-[72%] cursor-pointer rounded-full transition-transform hover:scale-[1.03] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric">{av}</button>
       ) : <span className="relative w-[68%]">{av}</span>}
     </span>
     <span className="relative z-[2] m-1.5 mt-0 block truncate rounded-lg bg-background/75 px-1.5 py-1 text-center text-[11px] font-extrabold text-foreground backdrop-blur-sm sm:text-xs">{name || "?"}</span>

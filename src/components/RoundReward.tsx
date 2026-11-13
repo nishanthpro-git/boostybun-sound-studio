@@ -32,16 +32,19 @@ export function RoundReward({ rewards, state, meId, onDone, claim }: { rewards: 
       <Coin className="coin-spin size-16 drop-shadow-[0_0_20px_color-mix(in_oklch,var(--primary)_60%,transparent)]" />
       <p className="text-xs font-extrabold tracking-widest text-muted-foreground uppercase">Round {rewards.round} complete</p>
       <h2 className="text-3xl font-bold">BoostyBuns earned</h2>
+      {rewards.winnerId && <p className="font-display text-lg text-gold">🏆 {state.players.find(p => p.id === rewards.winnerId)?.name ?? "Someone"} won this round!</p>}
     </div>
     <ul className="space-y-2">
-      {rewards.entries.map((e, i) => {
+      {[...rewards.entries].sort((a, b) => (b.playerId === rewards.winnerId ? 1 : 0) - (a.playerId === rewards.winnerId ? 1 : 0) || (b.earned + b.bonus) - (a.earned + a.bonus)).map((e, i) => {
         const player = state.players.find(p => p.id === e.playerId);
         if (!player) return null;
         const mine = e.playerId === meId;
-        return <li key={e.playerId} style={{ animationDelay: `${i * 0.07}s` }} className={cn("reward-pop flex items-center gap-3 rounded-2xl border p-3 sm:p-4", mine ? "border-electric bg-electric/10 shadow-[0_0_24px_-10px_var(--electric)]" : "border-border bg-background/40")}>
-          <Avatar src={player.avatar} className="size-11" />
+        const won = e.playerId === rewards.winnerId;
+        return <li key={e.playerId} style={{ animationDelay: `${i * 0.07}s` }} className={cn("reward-pop relative flex items-center gap-3 rounded-2xl border p-3 sm:p-4", won ? "border-2 border-gold bg-gold/10 shadow-[0_0_28px_-8px_var(--gold)]" : mine ? "border-electric bg-electric/10 shadow-[0_0_24px_-10px_var(--electric)]" : "border-border bg-background/40")}>
+          {won && <span className="absolute -top-2.5 left-3 rounded-full bg-gold px-2 py-0.5 text-[10px] font-extrabold tracking-widest text-background uppercase">👑 Round winner</span>}
+          <Avatar src={player.avatar} className={cn("size-11", won && "size-14")} />
           <div className="min-w-0 flex-1">
-            <p className="truncate font-bold">{player.name} {mine && <span className="text-electric-glow">(you)</span>}</p>
+            <p className={cn("truncate font-bold", won && "text-lg")}>{player.name} {mine && <span className="text-electric-glow">(you)</span>}</p>
             {e.bonus > 0 && <p className="text-sm font-bold text-gold">🏆 +2 Victory bonus</p>}
           </div>
           <span className="inline-flex shrink-0 items-center gap-1.5 font-display text-3xl font-bold text-primary tabular-nums">+{Math.round((e.earned + e.bonus) * step)}<Coin className="size-8" /></span>

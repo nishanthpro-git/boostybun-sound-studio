@@ -101,7 +101,7 @@ export function FinalCelebration({ state, meId, serverNow, send, onLeave }: {
         </div>
       )}
 
-      <div className="panel swap-burst relative my-auto w-full max-w-md space-y-4 border-2 border-primary/70 p-5 text-center shadow-[var(--shadow-panel),0_0_70px_-16px_var(--primary)] sm:space-y-5 sm:p-6">
+      <div className="panel swap-burst relative my-auto w-full max-w-md space-y-4 border-2 border-electric/70 p-5 text-center shadow-[var(--shadow-panel),0_0_70px_-16px_var(--electric)] sm:space-y-5 sm:p-6">
         <div className="flex items-center justify-center gap-2"><LogoBadge className="size-10" /><Wordmark className="text-2xl" /></div>
         <p className="font-display text-sm tracking-widest text-muted-foreground uppercase">Game over</p>
         <h2 className="text-3xl font-bold text-primary sm:text-4xl">{joint ? (iWon ? "You're a joint winner! 🎉" : "Joint winners! 🎉") : iWon ? "You won! 🎉" : "Congratulations! 🎉"}</h2>
@@ -110,7 +110,7 @@ export function FinalCelebration({ state, meId, serverNow, send, onLeave }: {
           {winners.map((w, i) => (
             <div key={w.id} className={cn("winner-bounce flex flex-col items-center gap-1", joint && "w-24")} style={{ animationDelay: `${i * 0.15}s` }}>
               <span className={cn("crown-wiggle", joint ? "text-2xl" : "text-4xl")} aria-hidden>👑</span>
-              <Avatar src={w.avatar} className={cn("glow-active", joint ? "size-16 text-4xl" : "size-28 text-6xl")} />
+              <Avatar src={w.avatar} className={cn("glow-blue", joint ? "size-16 text-4xl" : "size-28 text-6xl")} />
               <span className={cn("mt-1 max-w-full truncate font-display", joint ? "text-base" : "text-xl")}>{w.id === meId ? "You" : w.name}</span>
               <span className={cn("inline-flex items-center rounded-full bg-gradient-orange px-3 py-0.5 text-primary-foreground shadow-[var(--shadow-orange)]", joint && "px-2 text-xs")}><Buns amount={w.score} coinClassName={joint ? "size-4" : "size-5"} />{joint ? "" : <span className="ml-1 font-display">BoostyBuns</span>}</span>
             </div>
