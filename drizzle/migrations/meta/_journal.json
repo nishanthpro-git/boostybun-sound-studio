@@ -15,6 +15,13 @@
       "when": 1794372900190,
       "tag": "0001_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794592450750,
+      "tag": "0002_lock_rooms_reads",
+      "breakpoints": true
     }
   ]
 }
