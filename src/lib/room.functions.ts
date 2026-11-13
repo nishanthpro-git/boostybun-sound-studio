@@ -138,3 +138,25 @@ export const roomAction = createServerFn({ method: "POST" })
     if (expired) return { error: "You are no longer in this room" };
     return { ok: true };
   });
+
+/** Members-only room read: verifies the player's token and strips secrets before returning. */
+export const getRoom = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z.object({ code: z.string().length(6), playerId: z.string().uuid(), token: z.string().min(10) }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    const db = await admin();
+    const { data: row, error } = await db
+      .from("rooms")
+      .select("state, version, updated_at")
+      .eq("code", data.code)
+      .maybeSingle();
+    if (error) return { error: "Could not load room" };
+    if (!row) return { row: null };
+    const s = row.state as unknown as RoomState;
+    const hash = await sha(data.token);
+    const me = s.players.find((x) => x.id === data.playerId);
+    if (!me || me.tokenHash !== hash) return { row: null };
+    const safe = { ...s, players: s.players.map(({ tokenHash: _t, ...rest }) => ({ ...rest, tokenHash: "" })) };
+    return { row: { state: safe as never, version: row.version, updated_at: row.updated_at } };
+  });
