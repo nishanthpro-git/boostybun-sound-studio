@@ -9,7 +9,7 @@ import { LogoBadge, Wordmark } from "@/components/Brand";
 import { AVATARS, loadProfile, saveProfile, saveSession } from "@/lib/session";
 import { BUNNY_AVATARS, CARD_BACKS, MASKS } from "@/lib/brand";
 import { CardFace, cardBg } from "@/components/PlayerCard";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Shuffle } from "lucide-react";
 import { SelfieCamera } from "@/components/SelfieCamera";
 import { createRoom, joinRoom } from "@/lib/room.functions";
 import { cn } from "@/lib/utils";
@@ -46,6 +46,25 @@ function Home() {
     setAvatar(choices[(i + d + choices.length) % choices.length]);
   };
   const stepBg = (d: number) => setBg((b) => (b + d + CARD_BACKS.length) % CARD_BACKS.length);
+  const [hints, setHints] = useState({ bg: false, shape: false });
+  useEffect(() => {
+    try { setHints({ bg: !localStorage.getItem("boostybun:hint-bg"), shape: !localStorage.getItem("boostybun:hint-shape") }); } catch { /* ignore */ }
+  }, []);
+  const doneHint = (k: "bg" | "shape") => {
+    if (!hints[k]) return;
+    setHints((h) => ({ ...h, [k]: false }));
+    try { localStorage.setItem(`boostybun:hint-${k}`, "1"); } catch { /* ignore */ }
+  };
+  const tapBg = () => { sfx("background"); stepBg(1); doneHint("bg"); };
+  const tapShape = () => { sfx("mask"); setMask((m) => (m + 1) % MASKS.length); doneHint("shape"); };
+  const pickOther = (n: number, cur: number) => (n < 2 ? 0 : (cur + 1 + Math.floor(Math.random() * (n - 1))) % n);
+  const randomize = () => {
+    sfx("pop");
+    const ai = Math.max(0, choices.indexOf(avatar));
+    setAvatar(choices[pickOther(choices.length, ai)]);
+    setBg((b) => pickOther(CARD_BACKS.length, b));
+    setMask((m) => pickOther(MASKS.length, m));
+  };
   const takeSelfie = (photo: string) => { sfx("avatar"); setSelfie(photo); setAvatar(photo); };
 
   useEffect(() => {
@@ -112,10 +131,33 @@ function Home() {
             <label htmlFor="display-name" className="block text-xs font-extrabold tracking-widest text-muted-foreground uppercase">Display name</label>
             <Input id="display-name" value={name} maxLength={20} onChange={(e) => setName(e.target.value)} placeholder="Bunny" />
           </div>
-          <div key={bg} style={cardBg(CARD_BACKS[bg])} className="preview-swap game-card mx-auto flex aspect-[5/7] w-56 flex-col bg-surface sm:w-64">
-            <CardFace avatar={avatar} mask={mask} name={name.trim() || "You"} animate onAvatarClick={() => { sfx("mask"); setMask((m) => (m + 1) % MASKS.length); }} avatarLabel={`Change shape (now ${MASKS[mask]})`} />
+          <div className="relative mx-auto w-56 sm:w-64">
+            <div
+              key={bg}
+              role="button"
+              tabIndex={0}
+              aria-label={`Change background (now ${bg + 1} of ${CARD_BACKS.length})`}
+              data-sfx="none"
+              onClick={tapBg}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); tapBg(); } }}
+              style={cardBg(CARD_BACKS[bg])}
+              className="preview-swap game-card flex aspect-[5/7] w-full cursor-pointer flex-col bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric"
+            >
+              <CardFace avatar={avatar} mask={mask} name={name.trim() || "You"} animate onAvatarClick={tapShape} avatarLabel={`Change shape (now ${MASKS[mask]})`} />
+            </div>
+            {hints.bg && <div aria-hidden className="screen-in pointer-events-none absolute top-2 -left-3 z-10 flex flex-col items-start gap-1">
+              <span className="rounded-full bg-electric px-2 py-0.5 text-[11px] font-extrabold whitespace-nowrap text-primary-foreground shadow-lg">Tap here to change the background</span>
+              <span className="tap-hint ml-3 text-3xl drop-shadow-lg">👆</span>
+            </div>}
+            {hints.shape && <div aria-hidden className="screen-in pointer-events-none absolute top-[58%] left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1">
+              <span className="tap-hint text-3xl drop-shadow-lg">👆</span>
+              <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-extrabold whitespace-nowrap text-primary-foreground shadow-lg">Tap here to change the shape!</span>
+            </div>}
           </div>
-          <p className="text-center text-xs font-bold text-muted-foreground">Tap your bunny to change shape · {MASKS[mask]}</p>
+          <div className="flex justify-center">
+            <Button variant="secondary" className="rounded-full font-display" data-sfx="none" onClick={randomize}><Shuffle className="size-4" /> Random</Button>
+          </div>
+          <p className="text-center text-xs font-bold text-muted-foreground">Tap the card to change background · tap your bunny to change shape · {MASKS[mask]}</p>
           <Stepper sound="avatar" label="Avatar" value={selfie && avatar === selfie ? "Your selfie" : BUNNY_AVATARS[avatar]?.label ?? "Bunny"} onPrev={() => stepAvatar(-1)} onNext={() => stepAvatar(1)} />
           <Stepper sound="background" label="Background" value={`${bg + 1} / ${CARD_BACKS.length}`} onPrev={() => stepBg(-1)} onNext={() => stepBg(1)} />
           <div className="flex justify-center"><SelfieCamera onCapture={takeSelfie} /></div>
