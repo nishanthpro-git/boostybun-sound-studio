@@ -575,7 +575,7 @@ export function applyAction(
         if (s.hostId === pid) fail("You're the host");
         if (!me.ready) fail("Get ready first");
       }
-      const kind = action.type === "ring" ? "bell" : "nudge";
+      const kind: Ping["kind"] = action.type === "ring" ? "bell" : "nudge";
       const last = (s.pings ?? []).filter((x) => x.from === pid && x.kind === kind).at(-1);
       if (last && now - last.ts < PING_COOLDOWN_MS) fail("Give it a few seconds before trying again");
       s.pingSeq = (s.pingSeq ?? 0) + 1;
