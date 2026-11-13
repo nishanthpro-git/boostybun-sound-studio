@@ -5,7 +5,7 @@ import { useSyncExternalStore } from "react";
 export type Sfx =
   | "click" | "nav" | "avatar" | "background" | "mask" | "create" | "join"
   | "tap" | "send" | "receive" | "pass" | "turn" | "swap" | "claim" | "reward"
-  | "victory" | "confetti" | "error" | "alert" | "boost" | "pop" | "ready" | "start" | "success";
+  | "victory" | "confetti" | "error" | "alert" | "boost" | "pop" | "ready" | "start" | "success" | "bell";
 
 const KEY = "boostybun:sound";
 let enabled = true;
@@ -114,12 +114,13 @@ const SOUNDS: Record<Sfx, (c: AudioContext) => void> = {
   confetti: (c) => { for (let i = 0; i < 8; i++) tone(c, { f: 1800 + Math.random() * 1600, t: i * 0.05 + Math.random() * 0.03, d: 0.08, v: 0.1 }); noise(c, { d: 0.3, v: 0.12, from: 3000, to: 8000 }); },
   boost: (c) => { tone(c, { f: 150, to: 900, d: 0.35, type: "sawtooth", v: 0.15 }); noise(c, { d: 0.35, v: 0.3, from: 300, to: 5000 }); },
   error: (c) => { tone(c, { f: 220, to: 160, d: 0.18, type: "square", v: 0.12 }); tone(c, { f: 180, to: 130, t: 0.14, d: 0.2, type: "square", v: 0.12 }); },
+  bell: (c) => { [0, 0.28].forEach((t) => { tone(c, { f: 1568, t, d: 0.9, v: 0.28 }); tone(c, { f: 3136, t, d: 0.5, v: 0.08 }); tone(c, { f: 2349, t, d: 0.7, type: "triangle", v: 0.06 }); }); },
   alert: (c) => { tone(c, { f: 880, d: 0.1, type: "triangle", v: 0.25 }); tone(c, { f: 660, t: 0.12, d: 0.14, type: "triangle", v: 0.25 }); },
 };
 
 const last: Partial<Record<Sfx, number>> = {};
 let lastAny = 0;
-const BIG: Sfx[] = ["victory", "swap", "reward", "claim", "start", "boost", "confetti"];
+const BIG: Sfx[] = ["victory", "swap", "reward", "claim", "start", "boost", "confetti", "bell"];
 export function sfx(name: Sfx) {
   if (!isSoundOn()) return;
   const c = audio();

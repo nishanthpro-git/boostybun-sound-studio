@@ -114,7 +114,8 @@ export const roomAction = createServerFn({ method: "POST" })
           z.object({ type: z.literal("respondSwap"), swapId: z.number().int().positive(), defend: z.boolean() }).strict(),
           z.object({ type: z.literal("signal"), text: z.string().max(80) }).strict(),
           z.object({ type: z.literal("chat"), text: z.string().max(200) }).strict(),
-          ...["start", "victory", "boost", "swap", "endRound", "endGame", "newGame", "leave", "heartbeat"].map(type => z.object({ type: z.literal(type) }).strict()),
+          z.object({ type: z.literal("kick"), targetId: z.string().uuid() }).strict(),
+          ...["start", "victory", "boost", "swap", "endRound", "endGame", "newGame", "leave", "heartbeat", "ring", "nudge"].map(type => z.object({ type: z.literal(type) }).strict()),
         ]),
       })
       .parse(d),

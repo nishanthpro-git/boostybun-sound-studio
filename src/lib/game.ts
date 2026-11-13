@@ -64,7 +64,12 @@ export type RoomState = {
   reactions?: Reaction[];
   socialSeq?: number;
   final?: FinalResult | null;
+  /** Lobby notifications: host bell to players, or a ready player nudging the host. */
+  pings?: Ping[];
+  pingSeq?: number;
 };
+export type Ping = { id: number; kind: "bell" | "nudge"; from: string; ts: number };
+export const PING_COOLDOWN_MS = 5_000;
 
 export type Action =
   | { type: "ready"; ready: boolean }
@@ -81,6 +86,9 @@ export type Action =
   | { type: "endGame" }
   | { type: "newGame" }
   | { type: "leave" }
+  | { type: "kick"; targetId: string }
+  | { type: "ring" }
+  | { type: "nudge" }
   | { type: "heartbeat" };
 
 export class GameError extends Error {}
@@ -551,6 +559,29 @@ export function applyAction(
     case "leave":
       removePlayer(s, pid, now, "left the room");
       break;
+    case "kick": {
+      if (s.hostId !== pid) fail("Only the host can remove players");
+      if (s.phase !== "lobby") fail("Players can only be removed in the lobby");
+      if (action.targetId === pid) fail("You can't remove yourself");
+      if (!getPlayer(s, action.targetId)) fail("That player already left");
+      removePlayer(s, action.targetId, now, "was removed by the host");
+      break;
+    }
+    case "ring":
+    case "nudge": {
+      if (s.phase !== "lobby") fail("Only available in the lobby");
+      if (action.type === "ring" && s.hostId !== pid) fail("Only the host can ring the bell");
+      if (action.type === "nudge") {
+        if (s.hostId === pid) fail("You're the host");
+        if (!me.ready) fail("Get ready first");
+      }
+      const kind = action.type === "ring" ? "bell" : "nudge";
+      const last = (s.pings ?? []).filter((x) => x.from === pid && x.kind === kind).at(-1);
+      if (last && now - last.ts < PING_COOLDOWN_MS) fail("Give it a few seconds before trying again");
+      s.pingSeq = (s.pingSeq ?? 0) + 1;
+      s.pings = [...(s.pings ?? []).filter((x) => now - x.ts < 60_000), { id: s.pingSeq, kind, from: pid, ts: now }].slice(-20);
+      break;
+    }
   }
   sweep(s, now);
   return s;
