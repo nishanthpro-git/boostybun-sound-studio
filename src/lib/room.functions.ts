@@ -157,7 +157,7 @@ export const getRoom = createServerFn({ method: "POST" })
     const s = row.state as unknown as RoomState;
     const hash = await sha(data.token);
     const me = s.players.find((x) => x.id === data.playerId);
-    if (!me || me.tokenHash !== hash) return { row: null };
+    if (!me || me.tokenHash !== hash) return { row: null, removed: true };
     const safe = { ...s, players: s.players.map(({ tokenHash: _t, ...rest }) => ({ ...rest, tokenHash: "" })) };
     return { row: { state: safe as never, version: row.version, updated_at: row.updated_at } };
   });

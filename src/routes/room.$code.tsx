@@ -64,6 +64,7 @@ function RoomPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [state, setState] = useState<RoomState | null>(null);
   const [missing, setMissing] = useState(false);
+  const [removed, setRemoved] = useState(false);
   const versionRef = useRef(-1);
   const seenEvent = useRef<number | null>(null);
   const connection = useRoomConnection(session);
@@ -92,7 +93,11 @@ function RoomPage() {
       if (inFlight) return;
       inFlight = true;
       getRoom({ data: { code, playerId: session.playerId, token: session.token } })
-        .then((res) => { if (alive && !("error" in res)) applyRow(res.row); })
+        .then((res) => {
+          if (!alive || "error" in res) return;
+          if ("removed" in res && res.removed) return setRemoved(true);
+          applyRow(res.row);
+        })
         .catch(() => {})
         .finally(() => { inFlight = false; });
     };
@@ -156,6 +161,7 @@ function RoomPage() {
   }, [state, session]);
 
   if (connection.expired) return <Gone text="Your reconnect time expired. You are no longer in this room." onHome={() => saveSession(null)} />;
+  if (removed) return <Gone text="You're no longer in this room." onHome={() => saveSession(null)} />;
   if (missing) return <Gone text="This room doesn't exist." />;
   if (!state || !session) return <LoadingRoom code={code} />;
   const me = state.players.find((p) => p.id === session.playerId);
